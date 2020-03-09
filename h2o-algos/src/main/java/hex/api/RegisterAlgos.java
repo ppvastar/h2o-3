@@ -1,6 +1,7 @@
 package hex.api;
 
 import hex.ModelBuilder;
+import hex.gam.GAM;
 import hex.psvm.PSVM;
 import hex.tree.TreeHandler;
 import water.api.AlgoAbstractRegister;
