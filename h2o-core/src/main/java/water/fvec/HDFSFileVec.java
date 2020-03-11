@@ -33,6 +33,10 @@ public final class HDFSFileVec extends FileVec {
 
   @Override
   public byte[] getFirstBytes() {
+    if (H2O.STORE.get(chunkKey(0)) != null) {
+      // if it looks like we have the chunk cached attempt to use it instead of fetching it again
+      return super.getFirstBytes();
+    }
     try {
       int max = (long) _chunkSize > _len ? (int) _len : _chunkSize;
       return H2O.getPM().load(Value.HDFS, _key, 0L, max);
@@ -40,5 +44,5 @@ public final class HDFSFileVec extends FileVec {
       throw new RuntimeException("HDFS read failed", e);
     }
   }
-  
+
 }
