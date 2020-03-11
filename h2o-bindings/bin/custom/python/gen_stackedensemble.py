@@ -119,6 +119,7 @@ extensions = dict(
     __imports__="""
 from h2o.utils.shared_utils import quoted
 from h2o.utils.typechecks import is_type
+from h2o.grid import H2OGridSearch
 import json
 import ast
 """,
@@ -128,11 +129,23 @@ import ast
 overrides = dict(
     base_models=dict(
         setter="""
-if is_type(base_models, {ptype}):
-    {pname} = [b.model_id for b in {pname}]
+def _get_id(something):
+    if hasattr(something, "model_id"):
+        return something.model_id
+    elif hasattr(something, "grid_id"):
+        return something.grid_id
+    elif is_type(something, str):
+        return something
+    else:
+        raise ValueError("Type {{}} is not supported as a base model.".format(type(something)))
+
+if not is_type(base_models, list):
+    base_models = [base_models]
+if is_type(base_models, [H2OEstimator, H2OGridSearch, str]):
+    {pname} = [_get_id(b) for b in {pname}]
     self._parms["{sname}"] = {pname}
 else:
-    assert_is_type({pname}, None, [str])
+    assert_is_type({pname}, None)
     self._parms["{sname}"] = {pname}
 """,
         getter="""

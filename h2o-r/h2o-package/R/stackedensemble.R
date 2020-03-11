@@ -77,13 +77,12 @@ h2o.stackedEnsemble <- function(x,
   # Validate other args
   # Get the base models from model IDs (if any) that will be used for constructing model summary
   if(!is.list(base_models) && is.vector(x)) {
-     base_models <- as.list(base_models)
+    if (inherits(base_models, "H2OGrid")) {
+      base_models <- list(base_models)
+    } else {
+      base_models <- as.list(base_models)
+    }
   }
-  baselearners <- lapply(base_models, function(base_model) {
-    if (is.character(base_model))
-      base_model <- h2o.getModel(base_model)
-    base_model
-  })
 
   # Get base model IDs that will be passed to REST API later
   if (length(base_models) == 0) stop('base_models is empty')
@@ -92,6 +91,8 @@ h2o.stackedEnsemble <- function(x,
   for (i in 1:length(base_models)) {
     if (inherits(base_models[[i]], 'H2OModel')) {
       base_models[[i]] <- base_models[[i]]@model_id
+    } else if (inherits(base_models[[i]], 'H2OGrid')) {
+      base_models[[i]] <- base_models[[i]]@grid_id
     }
   }
 
@@ -135,6 +136,14 @@ h2o.stackedEnsemble <- function(x,
       model@parameters$metalearner_params <- list(fromJSON(model@parameters$metalearner_params))[[1]] #Need the `[[ ]]` to avoid a nested list
   }
   model@model <- .h2o.fill_stackedensemble(model@model, model@parameters, model@allparams)
+
+  # Get the actual models (that were potentially expanded from H2OGrid on the backend)
+  baselearners <- lapply(model@model$base_models, function(base_model) {
+    if (is.character(base_model))
+      base_model <- h2o.getModel(base_model)
+    base_model
+  })
+
   model@model$model_summary <- capture.output({
 
     print_ln <- function(...) cat(..., sep = "\n")
