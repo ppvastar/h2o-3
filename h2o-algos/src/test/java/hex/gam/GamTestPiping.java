@@ -51,7 +51,7 @@ public class GamTestPiping extends TestUtil {
       GAMModel model = getModel(gaussian,
               Scope.track(parse_test_file("smalldata/glm_test/multinomial_10_classes_10_cols_10000_Rows_train.csv")),
               "C11", gamCols, ignoredCols, new int[]{5}, new int[]{0}, false,
-              true, null, new double[]{1}, new double[]{0}, new double[]{0});
+              true, null, new double[]{1}, new double[]{0}, new double[]{0}, false);
       Scope.track_generic(model);
       double[][] rBinvD = new double[][]{{1.5605080,
               -3.5620961, 2.5465468, -0.6524143, 0.1074557}, {-0.4210098, 2.5559955, -4.3258597, 2.6228736,
@@ -107,7 +107,8 @@ public class GamTestPiping extends TestUtil {
       GAMModel model = getModel(gaussian,
               Scope.track(parse_test_file("smalldata/glm_test/multinomial_10_classes_10_cols_10000_Rows_train.csv"))
               , "C11", gamCols, ignoredCols, new int[]{5, 5, 5}, new int[]{0,0,0},
-              false, true, null, new double[]{1, 1, 1}, new double[]{0, 0, 0}, new double[]{0, 0, 0});
+              false, true, null, new double[]{1, 1, 1}, new double[]{0, 0, 0}, 
+              new double[]{0, 0, 0}, false);
       Scope.track_generic(model);
       double[][][] rBinvD = new double[][][]{{{1.5605080,
               -3.5620961, 2.5465468, -0.6524143, 0.1074557}, {-0.4210098, 2.5559955, -4.3258597, 2.6228736,
@@ -147,7 +148,8 @@ public class GamTestPiping extends TestUtil {
 
   public GAMModel getModel(GLMModel.GLMParameters.Family family, Frame train, String responseColumn,
                            String[] gamCols, String[] ignoredCols, int[] numKnots, int[] bstypes, boolean saveZmat,
-                           boolean savePenalty, double[][] knots, double[] scale, double[] alpha, double[] lambda) {
+                           boolean savePenalty, double[][] knots, double[] scale, double[] alpha, double[] lambda, 
+                           boolean standardize) {
     GAMModel gam = null;
     try {
       Scope.enter();
@@ -165,7 +167,7 @@ public class GamTestPiping extends TestUtil {
       Scope.track(train);
 
       GAMModel.GAMParameters params = new GAMModel.GAMParameters();
-      params._standardize = false;
+      params._standardize = standardize;
       params._scale = scale;
       params._family = family;
       params._response_column = responseColumn;
@@ -212,7 +214,7 @@ public class GamTestPiping extends TestUtil {
         GAMModel model = getModel(fams[runIndex],
                 Scope.track(parse_test_file("smalldata/glm_test/multinomial_10_classes_10_cols_10000_Rows_train.csv")),
                 "C11", gamCols, ignoredCols, new int[]{5, 5, 5}, new int[]{0, 0, 0}, false,
-                true, knots, new double[]{1, 1, 1}, new double[]{0, 0, 0}, new double[]{0, 0, 0});
+                true, knots, new double[]{1, 1, 1}, new double[]{0, 0, 0}, new double[]{0, 0, 0}, false);
         Scope.track_generic(model);
         Frame train = parse_test_file("smalldata/glm_test/multinomial_10_classes_10_cols_10000_Rows_train.csv");
         Scope.track(train);
@@ -379,16 +381,23 @@ public class GamTestPiping extends TestUtil {
     return parms;
   } 
 
+  
   @Test
   public void testAgainstRGam() {
-    String[] ignoredCols = new String[]{"C3", "C4", "C5", "C6", "C7", "C8", "C9", "C10", "C11", "C12", "C13", "C14",
-            "C15", "C17", "C18", "C19", "C20"};
-    String[] gamCols = new String[]{"C11", "C12", "C13"};
-/*    GAMModel model = getModel(gaussian,
-            Scope.track(parse_test_file("smalldata/glm_test/multinomial_10_classes_10_cols_10000_Rows_train.csv"))
-            , "C11", gamCols, ignoredCols, new int[]{5, 5, 5}, new int[]{0,0,0},
-            false, true, knots, new double[]{1, 1, 1}, new double[]{0, 0, 0}, new double[]{0, 0, 0});
-    Scope.track_generic(model);*/
+    Scope.enter();
+    try {
+      String[] ignoredCols = new String[]{"C3", "C4", "C5", "C6", "C7", "C8", "C9", "C10", "C11", "C12", "C13", "C14",
+              "C15", "C16", "C17", "C18", "C19", "C20"};
+      String[] gamCols = new String[]{"C11", "C12", "C13"};
+      GAMModel gaussianmodel = getModel(gaussian,
+              Scope.track(parse_test_file("smalldata/glm_test/gaussian_20cols_10000Rows.csv"))
+              , "C21", gamCols, ignoredCols, new int[]{5, 5, 5}, new int[]{0, 0, 0},
+              false, true, null, new double[]{1, 1, 1}, new double[]{0, 0, 0}, 
+              new double[]{0, 0, 0}, false);
+      Scope.track_generic(gaussianmodel);
+    } finally {
+      Scope.exit();
+    }
   }
   
   @Test

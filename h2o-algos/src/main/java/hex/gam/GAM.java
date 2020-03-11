@@ -301,7 +301,10 @@ public class GAM extends ModelBuilder<GAMModel, GAMModel.GAMParameters, GAMModel
         }
       } else {
         model._output._glm_model_beta = new double[glmCoeffLen];
+        model._output._glm_standardized_model_beta = new double[glmCoeffLen];
         System.arraycopy(glm._output.beta(), 0, model._output._glm_model_beta, 0, glmCoeffLen);
+        System.arraycopy(glm._output.getNormBeta(), 0, model._output._glm_standardized_model_beta, 0, 
+                glmCoeffLen);
       }
     }
   }
