@@ -18,22 +18,15 @@
  */
 package water.parser.parquet;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.Path;
 import org.apache.parquet.filter2.compat.FilterCompat;
 import org.apache.parquet.filter2.compat.RowGroupFilter;
 import org.apache.parquet.format.converter.ParquetMetadataConverter;
 import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.metadata.ParquetMetadata;
 import water.H2O;
-import water.fvec.FileVec;
-import water.fvec.HDFSFileVec;
 import water.fvec.Vec;
 import water.parser.ParseWriter;
-import water.persist.PersistHdfs;
-import water.persist.VecDataInputStream;
-import water.persist.VecFileSystem;
 import water.util.Log;
 
 import java.io.ByteArrayInputStream;
@@ -44,7 +37,6 @@ import java.util.Arrays;
 import static org.apache.parquet.bytes.BytesUtils.readIntLittleEndian;
 import static org.apache.parquet.format.converter.ParquetMetadataConverter.MetadataFilter;
 import static org.apache.parquet.format.converter.ParquetMetadataConverter.NO_FILTER;
-import static org.apache.parquet.hadoop.ParquetFileReader.PARQUET_READ_PARALLELISM;
 import static org.apache.parquet.hadoop.ParquetFileWriter.MAGIC;
 
 /**
@@ -92,19 +84,10 @@ public class VecParquetReader implements Closeable {
 
   private void initReader() throws IOException {
     assert reader == null;
-    final Configuration conf;
-    final Path path;
-    if (vec instanceof HDFSFileVec) {
-      conf = PersistHdfs.CONF;
-      path = new Path(((HDFSFileVec) vec).getPath());
-    } else {
-      conf = VecFileSystem.makeConfiguration(vec);
-      path = VecFileSystem.VEC_PATH;
-    }
-    conf.setInt(PARQUET_READ_PARALLELISM, 1); // disable parallelism (just one virtual file!)
+    final VecReaderEnv env = VecReaderEnv.make(vec);
     ChunkReadSupport crSupport = new ChunkReadSupport(writer, chunkSchema, _keepColumns);
-    ParquetReader.Builder<Long> prBuilder = ParquetReader.builder(crSupport, path)
-            .withConf(conf)
+    ParquetReader.Builder<Long> prBuilder = ParquetReader.builder(crSupport, env.getPath())
+            .withConf(env.getConf())
             .withFilter(new FilterCompat.Filter() {
               @Override
               @SuppressWarnings("unchecked")

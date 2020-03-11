@@ -223,14 +223,33 @@ public abstract class Persist {
     throw new RuntimeException("Not implemented");
   }
 
+  /**
+   * Creates a seekable Hadoop implementation of InputStream (FSDataInputStream)
+   * 
+   * h2o-core doesn't depend on Hadoop libraries and can thus not declare the return type specifically
+   * 
+   * @param path any H2O-3 allowed path
+   * @return instance of FSDataInputStream
+   */
   public InputStream openSeekable(String path) {
     throw new RuntimeException("Not implemented");
   }
 
+  /**
+   * Indicates whether this Persist backend can natively support Seekable InputStreams
+   * 
+   * @return true, if openSeekable can be safely called
+   */
   public boolean isSeekableOpenSupported() {
     return false;
   }
 
+  /**
+   * Creates a Seekable InputStream for a given Vec
+   * 
+   * @param vec any Vec in theory typically a ByteVec/FileVec
+   * @return instance of FSDataInputStream
+   */
   public InputStream wrapSeekable(Vec vec) {
     throw new RuntimeException("Not implemented");
   }
