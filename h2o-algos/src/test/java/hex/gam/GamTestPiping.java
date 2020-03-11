@@ -175,9 +175,9 @@ public class GamTestPiping extends TestUtil {
       params._bs = bstypes;
       params._k = numKnots;
       params._ignored_columns = ignoredCols;
-      params._alpha = alpha;
-      params._lambda = lambda;
-      params._compute_p_values = family.equals(multinomial)?false:true;
+    //  params._alpha = alpha;
+    //  params._lambda = lambda;
+    //  params._compute_p_values = family.equals(multinomial)?false:true;
       params._gam_X = gamCols;
       params._train = train._key;
       params._family = family;
@@ -393,7 +393,7 @@ public class GamTestPiping extends TestUtil {
               Scope.track(parse_test_file("smalldata/glm_test/gaussian_20cols_10000Rows.csv"))
               , "C21", gamCols, ignoredCols, new int[]{5, 5, 5}, new int[]{0, 0, 0},
               false, true, null, new double[]{1, 1, 1}, new double[]{0, 0, 0}, 
-              new double[]{0, 0, 0}, false);
+              new double[]{0, 0, 0}, true);
       Scope.track_generic(gaussianmodel);
     } finally {
       Scope.exit();
