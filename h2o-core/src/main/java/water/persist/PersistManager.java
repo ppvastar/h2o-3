@@ -84,11 +84,15 @@ public class PersistManager {
   }
 
   private void validateHdfsConfigured() {
-    if (I[Value.HDFS] == null) {
+    if (!isHdfsConfigured()) {
       throw new H2OIllegalArgumentException("HDFS, S3, S3N, and S3A support is not configured");
     }
   }
 
+  private boolean isHdfsConfigured() {
+    return I[Value.HDFS] != null;
+  }
+  
   public boolean isGcsPath(String path) {
     return path.toLowerCase().startsWith("gs://");
   }
@@ -607,7 +611,15 @@ public class PersistManager {
     }
   }
 
-  public InputStream openSeekable(Vec vec) {
+  /**
+   * Opens a {@link Vec} in seekable implementation of an {@link InputStream}.
+   * 
+   * @param vec An instance of {@link Vec} to open
+   * @return A seekable instanceo of {@link InputStream}, never null.
+   * @throws IOException When the underlying resource does not allow seekable resource creation and all fallback solutions
+   * failed. Or on reading error.
+   */
+  public InputStream openSeekable(final Vec vec) throws IOException {
     if (vec instanceof FileVec) {
       FileVec fileVec = (FileVec) vec;
       final String path = fileVec.getPath();
@@ -622,7 +634,13 @@ public class PersistManager {
       }
     }
     // fallback
-    validateHdfsConfigured();
+    if (!isHdfsConfigured()) {
+      throw new IllegalArgumentException(String.format(
+              "Failed to open Vec '%s' for reading. " +
+              "Persistence backend doesn't provide implementation of a Seekable InputStream and HDFS fallback is not available.", 
+              vec._key));
+    }
+    Log.debug("Persist doesn't provide openSeekable. Falling back to HDFS wrapper (VecDataInputStream).");
     return I[Value.HDFS].wrapSeekable(vec);
   }
   
