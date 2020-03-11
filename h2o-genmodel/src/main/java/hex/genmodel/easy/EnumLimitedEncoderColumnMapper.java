@@ -10,7 +10,7 @@ public class EnumLimitedEncoderColumnMapper extends EnumEncoderColumnMapper {
   }
   
   @Override
-  public void initModelColumnNames() {
-    modelColumnNames = _m.getOrigNames();
+  public String[] getModelColumnNames() {
+    return _m.getOrigNames();
   }
 }
